@@ -1,0 +1,36 @@
+import pandas as pd
+
+water = pd.read_csv("Water.tsv", sep="\t")
+
+neighborhoods = water['name'].drop_duplicates()
+print("List of neighborhoods:")
+pd.set_option('display.max_rows', None)
+print(neighborhoods)
+
+## Assigns values to different types of features
+feature_values = {
+    "Spray": 3,
+    "Drinking Fountain": 2,
+    "Decorative": 1
+}
+water['feature_value'] = water['feature_type'].map(feature_values)
+
+## Assigns values to different control types
+control_values = {
+    "Continuous": 2,
+    "On/Off": 1
+}
+water['control_value'] = water['control_type'].map(control_values).fillna(0).astype(int)
+
+#organizes the different scores
+neighborhood_scores = water.groupby('name')[['feature_value', 'control_value']].sum()
+neighborhood_scores['total_score'] = neighborhood_scores['feature_value'] + neighborhood_scores['control_value']
+
+#possible temporary strategy to get rid of weird duplicates
+neighborhood_scores = neighborhood_scores[neighborhood_scores['total_score'] <= 5]
+
+#sorts values highest to lowest
+sorted_neighborhoods = neighborhood_scores.sort_values(by='total_score', ascending=False)
+
+print("Neighborhoods sorted by total score:")
+print(sorted_neighborhoods)
